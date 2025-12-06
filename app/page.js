@@ -38,7 +38,7 @@ const Navbar = () => {
             <img 
               src="/logo.png" 
               alt="BellaCeleste" 
-              className="h-10 sm:h-12 w-auto object-contain"
+              className="h-14 sm:h-16 w-auto sm:w-auto object-contain"
             />
           </motion.div>
 
@@ -379,7 +379,7 @@ const Footer = () => {
               <img 
                 src="/logo.png" 
                 alt="BellaCeleste" 
-                className="h-12 w-auto object-contain"
+                className="h-14 w-auto object-contain"
               />
             </motion.div>
             <p className="text-gray-400 mb-6 leading-relaxed">
@@ -487,6 +487,129 @@ const Footer = () => {
   );
 };
 
+const flowers = [
+  {
+    id: 1,
+    name: 'Rose',
+    image: 'https://images.unsplash.com/photo-1561181286-d3fee7d55364?w=400&q=80',
+  },
+  {
+    id: 2,
+    name: 'Tulip',
+    image: 'https://images.unsplash.com/photo-1589302168068-964664d93dc0?w=400&q=80',
+  },
+  {
+    id: 3,
+    name: 'Lily',
+    image: 'https://images.unsplash.com/photo-1529688530643-6d0a90e7a87d?w=400&q=80',
+  },
+  {
+    id: 4,
+    name: 'Sunflower',
+    image: 'https://images.unsplash.com/photo-1504203700683-7f9aa2d049d6?w=400&q=80',
+  },
+];
+
+const CustomizeBouquet3D = () => {
+  const [selection, setSelection] = useState(
+    flowers.reduce((acc, flower) => ({ ...acc, [flower.id]: 0 }), {})
+  );
+
+  const handleChange = (id, value) => {
+    setSelection({ ...selection, [id]: Math.max(0, value) });
+  };
+
+  const generateBouquet = () => {
+    return Object.entries(selection)
+      .filter(([_, count]) => count > 0)
+      .map(([id, count]) => {
+        const flower = flowers.find(f => f.id === parseInt(id));
+        return { ...flower, count };
+      });
+  };
+
+  const bouquet = generateBouquet();
+
+  // Generate random 3D positions
+  const getFlower3DPositions = (count) => {
+    const positions = [];
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * 2 * Math.PI;
+      const radius = 40 + Math.random() * 50;
+      const x = Math.cos(angle) * radius;
+      const y = Math.sin(angle) * radius;
+      const z = Math.random() * 60; // depth for 3D
+      const rotateX = Math.random() * 60 - 30;
+      const rotateY = Math.random() * 60 - 30;
+      const rotateZ = Math.random() * 360;
+      positions.push({ x, y, z, rotateX, rotateY, rotateZ });
+    }
+    return positions;
+  };
+
+  return (
+    <div className="min-h-screen bg-white py-12">
+      <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-8 text-center">
+        Customize Your Bouquet (3D)
+      </h1>
+
+      {/* Flower Selection */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-6 mb-12 max-w-7xl mx-auto px-4 sm:px-6">
+        {flowers.map(flower => (
+          <motion.div
+            key={flower.id}
+            className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center"
+            whileHover={{ scale: 1.05 }}
+          >
+            <img
+              src={flower.image}
+              alt={flower.name}
+              className="w-32 h-32 object-cover rounded-xl mb-4"
+            />
+            <h3 className="text-lg font-semibold mb-2">{flower.name}</h3>
+            <input
+              type="number"
+              min="0"
+              value={selection[flower.id]}
+              onChange={e => handleChange(flower.id, parseInt(e.target.value))}
+              className="w-20 text-center border rounded-md p-1"
+            />
+          </motion.div>
+        ))}
+      </div>
+
+      {/* 3D Bouquet Preview */}
+      <div className="relative w-96 h-96 mx-auto perspective-1000">
+        {/* Wrapping Paper */}
+        <div className="absolute bottom-0 left-1/2 w-60 h-60 bg-pink-200/70 rounded-b-full rotate-[-45deg] -translate-x-1/2 shadow-xl" />
+
+        {bouquet.map(flower => {
+          const positions = getFlower3DPositions(flower.count);
+          return positions.map((pos, idx) => (
+            <motion.img
+              key={`${flower.id}-${idx}`}
+              src={flower.image}
+              alt={flower.name}
+              className="absolute w-20 h-20 object-cover rounded-full border-2 border-white shadow-lg"
+              style={{
+                top: '50%',
+                left: '50%',
+                transform: `translate(-50%, -50%) translate3d(${pos.x}px, ${pos.y}px, ${pos.z}px) rotateX(${pos.rotateX}deg) rotateY(${pos.rotateY}deg) rotateZ(${pos.rotateZ}deg)`,
+                zIndex: idx,
+              }}
+              whileHover={{ scale: 1.1 }}
+            />
+          ));
+        })}
+      </div>
+
+      <p className="text-center text-gray-500 mt-6">
+        Use the inputs above to add flowers to your bouquet. The 3D preview shows the bouquet with wrapping paper.
+      </p>
+    </div>
+  );
+};
+
 // Main Page Export
 export default function Home() {
   return (
@@ -494,6 +617,7 @@ export default function Home() {
       <Navbar />
       <HeroSlideshow />
       <FeaturedProducts />
+      <CustomizeBouquet3D/>
       <Footer />
     </div>
   );
